@@ -1,83 +1,72 @@
-import "./App.css";
-import React, { Component } from "react";
-import shortid from "shortid";
-// import styled from "styled-components";
+import './App.css';
+import { useState, useEffect, useRef } from 'react';
+import shortid from 'shortid';
 
-import ContactForm from "./components/ContactForm";
-import Filter from "./components/Filter";
-import ContactList from "./components/ContactList";
-import { FormContainer, ContactsTitle } from "./App.styled";
+import ContactForm from './components/ContactForm';
+import Filter from './components/Filter';
+import ContactList from './components/ContactList';
+import { FormContainer, ContactsTitle } from './App.styled';
 
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: "",
-  };
+const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const isFirstRender = useRef(true);
 
-  // получаю и проверяю наличие данных. если они есть- записываю в состояние распаршеные контакты из локала
-  componentDidMount() {
-    const contacts = localStorage.getItem("contacts");
-    const parsedContatcts = JSON.parse(contacts);
+  useEffect(() => {
+    const savedContacts = localStorage.getItem('contacts');
+    const parsedContatcts = JSON.parse(savedContacts);
+
     if (parsedContatcts) {
-      this.setState({ contacts: parsedContatcts });
+      setContacts(parsedContatcts);
     }
-  }
+  }, []);
 
   // сравнение нового контакта с имеющимся, запись нового в локал
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }
-  // запись в контакты новый контакт
-  addContact = ({ name, number }) => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+
+  const addContact = ({ name, number }) => {
     const userContact = {
       id: shortid.generate(),
       name,
       number,
     };
 
-    this.setState((prevState) => ({
-      contacts: [...prevState.contacts, userContact],
-    }));
+    setContacts(prevContacts => [...prevContacts, userContact]);
   };
 
-  deleteContact = (contactId) => {
-    this.setState((prevstate) => ({
-      contacts: prevstate.contacts.filter(
-        (contact) => contact.id !== contactId
-      ),
-    }));
+  const deleteContact = contactId => {
+    setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== contactId)
+    );
   };
+
+  const normalizedFilter = filter.toLowerCase();
+
+  const filteredContacts = contacts?.filter(contact =>
+    contact.name.toLowerCase().includes(normalizedFilter)
+  );
 
   // сохраняем в стейт данные фильтра
-  changeInputFilter = (event) => {
+
+  const changeInputFilter = event => {
     const { name, value } = event.currentTarget;
-    this.setState({ [name]: value });
+    setFilter(value);
   };
 
-  render() {
-    const normalizedFilter = this.state.filter.toLowerCase();
-
-    const filteredContacts = this.state.contacts?.filter((contact) =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
-
-    return (
-      <FormContainer>
-        <ContactForm
-          onSubmit={this.addContact}
-          contacts={this.state.contacts}
-        />
-        <ContactsTitle>Contacts</ContactsTitle>
-        <Filter filter={this.state.filter} onChange={this.changeInputFilter} />
-        <ContactList
-          contacts={filteredContacts}
-          deleteContact={this.deleteContact}
-        />
-      </FormContainer>
-    );
-  }
-}
+  return (
+    <FormContainer>
+      <ContactForm onSubmit={addContact} contacts={contacts} />
+      <ContactsTitle>Contacts</ContactsTitle>
+      <Filter filter={filter} onChange={changeInputFilter} />
+      <ContactList contacts={filteredContacts} deleteContact={deleteContact} />
+    </FormContainer>
+  );
+};
 
 export default App;

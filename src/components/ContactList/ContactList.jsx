@@ -1,18 +1,18 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 import {
   UsersContactList,
   ContactListItem,
   UserName,
   UserNumber,
   ContactListButton,
-} from "./ContactList.styled";
+} from './ContactList.styled';
 
 const ContactList = ({ contacts, deleteContact }) => {
   return (
     <div>
       <UsersContactList>
-        {contacts?.map((contact) => (
+        {contacts?.map(contact => (
           <ContactListItem key={contact.id}>
             <UserName>{contact.name}</UserName>
             <UserNumber>{contact.number}</UserNumber>
@@ -25,12 +25,14 @@ const ContactList = ({ contacts, deleteContact }) => {
     </div>
   );
 };
-ContactList.propTypes = {
-  contacts: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-    number: PropTypes.string,
-  }),
-};
 
+ContactList.propTypes = {
+  contacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+      number: PropTypes.string,
+    })
+  ),
+};
 export default ContactList;
